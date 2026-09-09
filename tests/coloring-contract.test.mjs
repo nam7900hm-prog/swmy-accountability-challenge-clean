@@ -25,7 +25,14 @@ test("8개 미션은 각각 12개의 의미 영역을 갖는다",()=>{
 test("하루마다 현재 영역이 20% 선명해지고 5일마다 다음 영역으로 이동한다",()=>{
  assert.match(page,/remainder\*20/);
  assert.match(page,/Math\.floor\(safe\/5\)/);
- assert.match(page,/opacity:fill\/100/);
+ assert.match(page,/partState\(total,label\)\/100/);
+});
+
+test("거친 CSS 다각형 대신 사물별 이미지 마스크로 채색한다",()=>{
+ const objectRenderer=page.slice(page.indexOf("function ObjectColorArt"),page.indexOf("function Preview"));
+ assert.match(objectRenderer,/object-masks\/\$\{mission\}\.png/);
+ assert.doesNotMatch(objectRenderer,/clipPath|part\.clip/);
+ for(const mission of missions) assert.ok(fs.existsSync(path.join(root,`public/missions/object-masks/${mission}.png`)),mission);
 });
 
 test("그림 채색은 보너스가 아닌 필수과제 실천일을 사용한다",()=>{
@@ -47,4 +54,16 @@ test("기존 전체 학생 목록과 별도 학생 찾기 입력란을 함께 �
  for(const label of ["기록 찾기 학년","기록 찾기 반","기록 찾기 번호","기록 찾기 이름"]) assert.ok(page.includes(label),label);
  assert.match(page,/<p>등록된 학생<\/p>\{students\.map/);
  assert.match(page,/foundStudents\.map/);
+});
+
+test("기타 실천과제 아래에 기본 자동·선택형 수동 채색을 제공한다",()=>{
+ assert.match(page,/s\.colorMode\|\|"auto"/);
+ assert.ok(page.includes("자동 채색"));
+ assert.ok(page.includes("수동 채색"));
+ assert.ok(page.includes("color-part-grid"));
+ assert.ok(page.includes("selectedColorPart"));
+ const extra2=page.indexOf('title="기타 실천과제 2');
+ const controls=page.indexOf("<ColorControls",extra2);
+ const completion=page.indexOf("오늘의 필수 약속을 모두 지켰어요",extra2);
+ assert.ok(extra2>=0&&controls>extra2&&completion>controls,"채색 선택 상자는 기타 실천과제 2 뒤에 있어야 함");
 });
