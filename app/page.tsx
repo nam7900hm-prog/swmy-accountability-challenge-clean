@@ -139,12 +139,16 @@ function ObjectColorArt({mission,total,levels}:{mission:MissionId;total:number;l
    const color=tctx.getImageData(0,0,width,height);
    tctx.clearRect(0,0,width,height);tctx.drawImage(mask,0,0,width,height);
    const labels=tctx.getImageData(0,0,width,height).data,out=ctx.createImageData(width,height);
+   const bounds=Array.from({length:12},()=>({minX:width,maxX:0,minY:height,maxY:0}));
+   for(let i=0;i<labels.length;i+=4){const label=Math.round(labels[i]/20)-1;if(label<0)continue;const pixel=i/4,x=pixel%width,y=Math.floor(pixel/width),box=bounds[label];box.minX=Math.min(box.minX,x);box.maxX=Math.max(box.maxX,x);box.minY=Math.min(box.minY,y);box.maxY=Math.max(box.maxY,y)}
    for(let i=0;i<color.data.length;i+=4){
     const r=color.data[i],g=color.data[i+1],b=color.data[i+2];
     const gray=Math.max(0,Math.min(255,(((r*.299+g*.587+b*.114)-128)*1.45+128)*1.28));
     const sketch=255+(gray-255)*.68,label=Math.round(labels[i]/20)-1;
-    const fill=label>=0?(levels?Math.max(0,Math.min(5,levels[label]||0))/5:total>=60?1:partState(total,label)/100):0;
-    out.data[i]=sketch+(r-sketch)*fill;out.data[i+1]=sketch+(g-sketch)*fill;out.data[i+2]=sketch+(b-sketch)*fill;out.data[i+3]=255;
+    const units=label>=0?(levels?Math.max(0,Math.min(5,levels[label]||0)):Math.round(partState(total,label)/20)):0;
+    let painted=false;
+    if(label>=0&&units>0){const pixel=i/4,x=pixel%width,y=Math.floor(pixel/width),box=bounds[label],nx=(x-box.minX)/Math.max(1,box.maxX-box.minX),ny=(y-box.minY)/Math.max(1,box.maxY-box.minY),axis=label%4===0?nx:label%4===1?1-ny:label%4===2?ny:1-nx,wave=.055*Math.sin(y*.075+label*1.7)+.035*Math.sin(x*.047+y*.029);painted=units>=5||axis+wave<=units/5}
+    out.data[i]=painted?r:sketch;out.data[i+1]=painted?g:sketch;out.data[i+2]=painted?b:sketch;out.data[i+3]=255;
    }
    ctx.putImageData(out,0,0);
   }

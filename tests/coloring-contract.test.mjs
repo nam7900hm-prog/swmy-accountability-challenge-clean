@@ -25,7 +25,13 @@ test("8개 미션은 각각 12개의 의미 영역을 갖는다",()=>{
 test("하루마다 현재 영역이 20% 선명해지고 5일마다 다음 영역으로 이동한다",()=>{
  assert.match(page,/remainder\*20/);
  assert.match(page,/Math\.floor\(safe\/5\)/);
- assert.match(page,/partState\(total,label\)\/100/);
+ assert.match(page,/partState\(total,label\)\/20/);
+});
+
+test("색 농도가 아니라 사물 안의 완전한 컬러 면적이 20%씩 늘어난다",()=>{
+ assert.match(page,/axis\+wave<=units\/5/);
+ assert.match(page,/out\.data\[i\]=painted\?r:sketch/);
+ assert.doesNotMatch(page,/sketch\+\(r-sketch\)\*fill/);
 });
 
 test("거친 CSS 다각형 대신 사물별 이미지 마스크로 채색한다",()=>{
